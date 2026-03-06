@@ -1,0 +1,5 @@
+{
+  "low": ["Practice deep breathing", "Light exercise"],
+  "moderate": ["Meditation", "Reduce screen time", "Daily walk"],
+  "high": ["Consult psychologist", "Emergency helpline", "Sleep regulation"]
+}
