@@ -1,0 +1,13 @@
+# Backend API
+fastapi
+uvicorn[standard]
+python-multipart
+
+# Core logic (reused from the original Streamlit app)
+requests
+numpy
+scikit-learn
+joblib
+textblob
+deepface
+tf-keras

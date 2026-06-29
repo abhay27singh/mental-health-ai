@@ -1,0 +1,260 @@
+:root {
+  --bg: #0e1117;
+  --card: #161b22;
+  --border: #2a2f3a;
+  --text: #e6edf3;
+  --muted: #8b949e;
+  --accent: #3b82f6;
+  --green: #2ecc71;
+  --ai: #34495e;
+  --danger: #e74c3c;
+  --warning: #f1c40f;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
+    Arial, sans-serif;
+}
+
+h1,
+h2,
+h3 {
+  font-weight: 600;
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  padding: 24px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+}
+
+.container {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 24px 16px 64px;
+}
+
+/* ---------- Login ---------- */
+.login-wrap {
+  max-width: 420px;
+  margin: 8vh auto 0;
+  padding: 0 16px;
+}
+
+.login-title {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.toggle {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.toggle button {
+  flex: 1;
+}
+
+/* ---------- Forms ---------- */
+label {
+  display: block;
+  margin: 12px 0 6px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+input[type="text"],
+input[type="password"],
+textarea,
+select {
+  width: 100%;
+  padding: 10px 12px;
+  background: #0d1117;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 15px;
+}
+
+textarea {
+  resize: vertical;
+  min-height: 90px;
+}
+
+input[type="range"] {
+  width: 100%;
+}
+
+button {
+  background: var(--accent);
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 15px;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+button:hover {
+  opacity: 0.9;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+button.secondary {
+  background: #30363d;
+}
+
+button.ghost {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+
+button.danger {
+  background: var(--danger);
+}
+
+button.active {
+  background: var(--accent);
+}
+
+/* ---------- Layout bits ---------- */
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--border);
+  background: var(--card);
+}
+
+.tabs {
+  display: flex;
+  gap: 8px;
+  margin: 24px 0;
+  flex-wrap: wrap;
+}
+
+.tabs button {
+  background: #1c2128;
+  color: var(--muted);
+}
+
+.tabs button.active {
+  background: var(--accent);
+  color: white;
+}
+
+.row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.muted {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+/* ---------- Alerts ---------- */
+.alert {
+  padding: 12px 14px;
+  border-radius: 8px;
+  margin: 12px 0;
+  white-space: pre-wrap;
+}
+.alert.success {
+  background: rgba(46, 204, 113, 0.15);
+  border: 1px solid var(--green);
+}
+.alert.error {
+  background: rgba(231, 76, 60, 0.15);
+  border: 1px solid var(--danger);
+}
+.alert.warning {
+  background: rgba(241, 196, 15, 0.12);
+  border: 1px solid var(--warning);
+}
+.alert.info {
+  background: rgba(59, 130, 246, 0.12);
+  border: 1px solid var(--accent);
+}
+
+/* ---------- Chat ---------- */
+.chat-box {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 420px;
+  overflow-y: auto;
+  margin-bottom: 16px;
+}
+
+.bubble {
+  padding: 10px 14px;
+  border-radius: 12px;
+  max-width: 75%;
+  white-space: pre-wrap;
+  line-height: 1.4;
+}
+
+.bubble.user {
+  align-self: flex-end;
+  background: var(--green);
+  color: white;
+}
+
+.bubble.ai {
+  align-self: flex-start;
+  background: var(--ai);
+  color: white;
+}
+
+.bubble.emergency {
+  align-self: stretch;
+  max-width: 100%;
+  background: rgba(231, 76, 60, 0.2);
+  border: 1px solid var(--danger);
+}
+
+/* ---------- Misc ---------- */
+.list-clean {
+  list-style: none;
+  padding: 0;
+}
+.list-clean li {
+  padding: 6px 0;
+}
+
+.progress {
+  height: 10px;
+  background: #0d1117;
+  border-radius: 6px;
+  overflow: hidden;
+  margin: 8px 0;
+}
+.progress > div {
+  height: 100%;
+  background: var(--accent);
+}
+
+video,
+canvas {
+  border-radius: 10px;
+  max-width: 100%;
+}

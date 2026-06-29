@@ -25,13 +25,16 @@ An AI-powered mental health analysis system that helps users track mood, detect 
 
 ## 🛠 Tech Stack
 
-- **Frontend:** Streamlit
-- **Backend:** Python
+- **Frontend:** React (Vite) + Recharts
+- **Backend:** FastAPI (Python)
 - **Database:** SQLite
 - **Machine Learning:** Random Forest
 - **NLP:** TextBlob
 - **Emotion Detection:** DeepFace
-- **Chatbot API:** OpenRouter
+- **Chatbot API:** OpenAI (gpt-4o-mini)
+
+The app is split into a Python REST API (`api.py`) that reuses the original
+ML/NLP/emotion logic, and a React single-page app (`frontend/`) that consumes it.
 
 ---
 
@@ -65,7 +68,24 @@ User Input → ML Prediction → Emotion Detection → Recommendations → Chatb
 
 ---
 
-## ⚙️ Installation
+## ⚙️ Installation & Running
+
+### Quick start
+
+After installing dependencies once (see below), run both servers together:
+
+```bash
+./start.sh   # starts backend (:8000) and frontend (:5173) in the background
+./stop.sh    # stops them
+```
+
+Logs are written to `.run/backend.log` and `.run/frontend.log`.
+
+---
+
+The project has two parts that run together: a FastAPI backend and a React frontend.
+
+### 1. Backend (FastAPI)
 
 ```bash
 git clone https://github.com/abhay27singh/mental-health-ai.git
@@ -73,5 +93,24 @@ cd mental-health-ai
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
-streamlit run app.py
+
+# Optional: enable the AI chatbot (emergency replies work without it)
+export OPENAI_API_KEY="sk-..."
+
+uvicorn api:app --reload --port 8000
 ```
+
+The API is now at http://localhost:8000 (interactive docs at `/docs`).
+
+### 2. Frontend (React)
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Open http://localhost:5173. The Vite dev server proxies `/api/*` to the
+backend on port 8000, so just run both at once.
+
+To build for production: `npm run build` (output in `frontend/dist/`).

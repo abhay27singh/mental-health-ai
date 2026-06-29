@@ -5,3 +5,12 @@ __pycache__/
 database.db
 .DS_Store
 .streamlit/
+chat_log.txt
+
+# Frontend
+node_modules/
+frontend/dist/
+frontend/node_modules/
+
+# Runtime (start.sh / stop.sh)
+.run/

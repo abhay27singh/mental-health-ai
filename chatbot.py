@@ -1,10 +1,22 @@
-import requests
 import os
+import requests
 
 # 🔑 API KEY
-OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY")
-# OR directly:
-# OPENROUTER_API_KEY = "your_api_key_here"
+# Loaded from the environment first, then from .streamlit/secrets.toml as a
+# fallback (parsed directly so we don't depend on Streamlit being installed).
+def _get_api_key():
+    key = os.environ.get("OPENAI_API_KEY")
+    if key:
+        return key
+    try:
+        import tomllib
+        with open(".streamlit/secrets.toml", "rb") as f:
+            return tomllib.load(f).get("OPENAI_API_KEY")
+    except Exception:
+        return None
+
+
+OPENAI_API_KEY = _get_api_key()
 
 # 🧠 SYSTEM PROMPT
 SYSTEM_PROMPT = """You are a compassionate mental health support companion.
@@ -38,6 +50,13 @@ def chatbot_response(user_message, chat_history=None):
         # NORMAL CHAT FLOW
         # =============================
 
+        api_key = OPENAI_API_KEY or _get_api_key()
+        if not api_key:
+            return (
+                "Chatbot is not configured. Please add OPENAI_API_KEY to "
+                ".streamlit/secrets.toml or your environment."
+            )
+
         messages = [{"role": "system", "content": SYSTEM_PROMPT}]
 
         if chat_history:
@@ -48,25 +67,27 @@ def chatbot_response(user_message, chat_history=None):
 
         messages.append({"role": "user", "content": user_message})
 
-        # 🌐 API CALL
+        # 🌐 API CALL (OpenAI Chat Completions)
         response = requests.post(
-            "https://openrouter.ai/api/v1/chat/completions",
+            "https://api.openai.com/v1/chat/completions",
             headers={
-                "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+                "Authorization": f"Bearer {api_key}",
                 "Content-Type": "application/json"
             },
             json={
-                "model": "meta-llama/llama-3-8b-instruct",
+                "model": "gpt-4o-mini",
                 "messages": messages,
                 "temperature": 0.7
-            }
+            },
+            timeout=30
         )
 
         data = response.json()
 
         # ❌ Error handling
         if "choices" not in data:
-            return f"API Error: {data}"
+            err = data.get("error", data)
+            return f"API Error: {err}"
 
         # ✅ Return reply
         return data["choices"][0]["message"]["content"]
