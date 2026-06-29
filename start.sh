@@ -30,9 +30,25 @@ echo "Starting frontend (vite) on http://localhost:5173 ..."
 ) > .run/frontend.log 2>&1 &
 echo $! > .run/frontend.pid
 
+URL="http://localhost:5173"
+
+# --- Wait for the frontend to be ready, then open it in Chrome ---
+echo "Waiting for the app to be ready ..."
+for i in $(seq 1 30); do
+  curl -sf "$URL" >/dev/null 2>&1 && break
+  sleep 1
+done
+
+if open -a "Google Chrome" "$URL" 2>/dev/null; then
+  echo "Opened $URL in Google Chrome."
+else
+  open "$URL" 2>/dev/null || true   # fall back to default browser
+  echo "Chrome not found — opened $URL in your default browser."
+fi
+
 echo ""
 echo "✅ App started."
 echo "   Backend : http://localhost:8000  (docs at /docs)"
-echo "   Frontend: http://localhost:5173"
+echo "   Frontend: $URL"
 echo "   Logs    : .run/backend.log  .run/frontend.log"
 echo "   Stop    : ./stop.sh"
