@@ -1,22 +1,46 @@
 import { useState } from "react";
 import { api, getToken, setToken } from "./api";
+import { Icons } from "./components/ui.jsx";
 import Login from "./components/Login.jsx";
 import Dashboard from "./components/Dashboard.jsx";
 import EmotionTab from "./components/EmotionTab.jsx";
 import ChatbotTab from "./components/ChatbotTab.jsx";
 import AdminTab from "./components/AdminTab.jsx";
 
-const TABS = [
-  { id: "dashboard", label: "📊 Dashboard" },
-  { id: "emotion", label: "😊 Emotion" },
-  { id: "chatbot", label: "🤖 Chatbot" },
-  { id: "admin", label: "🛠 Admin" },
+const NAV = [
+  {
+    id: "dashboard",
+    label: "Dashboard",
+    icon: Icons.dashboard,
+    title: "Wellness Dashboard",
+    subtitle: "Track your mental health, log your mood, and get tailored guidance.",
+  },
+  {
+    id: "emotion",
+    label: "Emotion Scan",
+    icon: Icons.emotion,
+    title: "Facial Emotion Detection",
+    subtitle: "Capture a photo and let AI read your current emotional state.",
+  },
+  {
+    id: "chatbot",
+    label: "AI Companion",
+    icon: Icons.chat,
+    title: "AI Support Companion",
+    subtitle: "A calm, judgment-free space to talk things through.",
+  },
+  {
+    id: "admin",
+    label: "Admin",
+    icon: Icons.admin,
+    title: "Admin Console",
+    subtitle: "Manage users and review wellness analytics.",
+  },
 ];
 
 export default function App() {
   const [auth, setAuth] = useState(() => {
-    const token = getToken();
-    if (!token) return null;
+    if (!getToken()) return null;
     return {
       username: localStorage.getItem("mh_user") || "",
       isAdmin: localStorage.getItem("mh_admin") === "true",
@@ -28,6 +52,7 @@ export default function App() {
     localStorage.setItem("mh_user", username);
     localStorage.setItem("mh_admin", String(is_admin));
     setAuth({ username, isAdmin: is_admin });
+    setTab("dashboard");
   }
 
   async function handleLogout() {
@@ -42,40 +67,64 @@ export default function App() {
     setAuth(null);
   }
 
-  if (!auth) {
-    return <Login onLogin={handleLogin} />;
-  }
+  if (!auth) return <Login onLogin={handleLogin} />;
+
+  // Hide admin nav for non-admins.
+  const nav = NAV.filter((n) => n.id !== "admin" || auth.isAdmin);
+  const current = NAV.find((n) => n.id === tab) || NAV[0];
 
   return (
-    <>
-      <div className="topbar">
-        <strong>🧠 Mental Health AI</strong>
-        <div className="row">
-          <span className="muted">Logged in as {auth.username}</span>
-          <button className="ghost" onClick={handleLogout}>
-            Logout
-          </button>
+    <div className="app-shell">
+      <aside className="sidebar">
+        <div className="brand">
+          <div className="brand-logo">🧠</div>
+          <div>
+            <div className="brand-name">MindScope</div>
+            <div className="brand-sub">Wellness AI</div>
+          </div>
         </div>
-      </div>
 
-      <div className="container">
-        <div className="tabs">
-          {TABS.map((t) => (
+        <nav className="nav">
+          {nav.map((n) => (
             <button
-              key={t.id}
-              className={tab === t.id ? "active" : ""}
-              onClick={() => setTab(t.id)}
+              key={n.id}
+              className={`nav-item ${tab === n.id ? "active" : ""}`}
+              onClick={() => setTab(n.id)}
             >
-              {t.label}
+              {n.icon}
+              <span className="lbl">{n.label}</span>
             </button>
           ))}
+        </nav>
+
+        <div className="sidebar-footer">
+          <div className="user-chip">
+            <div className="avatar">
+              {auth.username.charAt(0).toUpperCase() || "?"}
+            </div>
+            <div className="user-meta">
+              <div className="user-name">{auth.username}</div>
+              <div className="user-role">{auth.isAdmin ? "Administrator" : "Member"}</div>
+            </div>
+          </div>
+          <button className="ghost block" onClick={handleLogout}>
+            {Icons.logout}
+            <span>Sign out</span>
+          </button>
         </div>
+      </aside>
+
+      <main className="main">
+        <header className="page-header">
+          <h1>{current.title}</h1>
+          <p>{current.subtitle}</p>
+        </header>
 
         {tab === "dashboard" && <Dashboard />}
         {tab === "emotion" && <EmotionTab />}
         {tab === "chatbot" && <ChatbotTab />}
         {tab === "admin" && <AdminTab isAdmin={auth.isAdmin} />}
-      </div>
-    </>
+      </main>
+    </div>
   );
 }

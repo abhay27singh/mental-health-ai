@@ -1,5 +1,16 @@
 import { useRef, useState, useEffect } from "react";
 import { api } from "../api";
+import { Spinner } from "./ui.jsx";
+
+const EMOJI = {
+  happy: "😄",
+  sad: "😢",
+  angry: "😠",
+  fear: "😨",
+  surprise: "😲",
+  disgust: "🤢",
+  neutral: "😐",
+};
 
 export default function EmotionTab() {
   const videoRef = useRef(null);
@@ -31,7 +42,7 @@ export default function EmotionTab() {
 
   useEffect(() => () => stopCamera(), []);
 
-  async function capture() {
+  function capture() {
     if (!videoRef.current) return;
     const video = videoRef.current;
     const canvas = canvasRef.current;
@@ -44,8 +55,7 @@ export default function EmotionTab() {
     setResult(null);
     canvas.toBlob(async (blob) => {
       try {
-        const res = await api.detectEmotion(blob);
-        setResult(res);
+        setResult(await api.detectEmotion(blob));
       } catch (err) {
         setError(err.message);
       } finally {
@@ -55,41 +65,74 @@ export default function EmotionTab() {
   }
 
   return (
-    <div className="card">
-      <h2>😊 Emotion Detection</h2>
+    <div className="grid-2">
+      <div className="card">
+        <div className="card-head">
+          <div className="ico">📷</div>
+          <div>
+            <h2>Live Camera</h2>
+            <div className="sub">Position your face in the frame</div>
+          </div>
+        </div>
 
-      <video ref={videoRef} playsInline style={{ width: "100%", maxWidth: 480 }} />
-      <canvas ref={canvasRef} style={{ display: "none" }} />
+        <div className="camera-frame">
+          <video ref={videoRef} playsInline />
+        </div>
+        <canvas ref={canvasRef} style={{ display: "none" }} />
 
-      <div className="row" style={{ marginTop: 12 }}>
-        {!streaming ? (
-          <button onClick={startCamera}>Start Camera</button>
-        ) : (
-          <>
-            <button onClick={capture} disabled={busy}>
-              {busy ? "Analyzing..." : "Capture & Analyze"}
-            </button>
-            <button className="secondary" onClick={stopCamera}>
-              Stop Camera
-            </button>
-          </>
-        )}
+        <div className="row" style={{ marginTop: 14 }}>
+          {!streaming ? (
+            <button onClick={startCamera}>Start Camera</button>
+          ) : (
+            <>
+              <button onClick={capture} disabled={busy}>
+                {busy ? <Spinner /> : "Capture & Analyze"}
+              </button>
+              <button className="ghost" onClick={stopCamera}>
+                Stop
+              </button>
+            </>
+          )}
+        </div>
+        {error && <div className="alert error">{error}</div>}
       </div>
 
-      {error && <div className="alert error">{error}</div>}
-
-      {result && (
-        <div style={{ marginTop: 16 }}>
-          <div className="alert success">
-            {result.emotion.toUpperCase()} ({result.confidence}%)
+      <div className="card">
+        <div className="card-head">
+          <div className="ico">✨</div>
+          <div>
+            <h2>Analysis</h2>
+            <div className="sub">Detected emotion & guidance</div>
           </div>
-          <div className="progress">
-            <div style={{ width: `${Math.min(result.confidence, 100)}%` }} />
-          </div>
-          <h3>💡 Suggestion</h3>
-          <div className="alert info">{result.suggestion}</div>
         </div>
-      )}
+
+        {!result ? (
+          <div className="empty">
+            <span className="emoji">🙂</span>
+            Capture a photo to detect your emotion.
+          </div>
+        ) : (
+          <div>
+            <div className="row" style={{ gap: 16 }}>
+              <div style={{ fontSize: 56, lineHeight: 1 }}>
+                {EMOJI[result.emotion] || "🙂"}
+              </div>
+              <div>
+                <div style={{ fontSize: 24, fontWeight: 800, textTransform: "capitalize" }}>
+                  {result.emotion}
+                </div>
+                <div className="muted">{result.confidence}% confidence</div>
+              </div>
+            </div>
+            <div className="progress" style={{ marginTop: 14 }}>
+              <div style={{ width: `${Math.min(result.confidence, 100)}%` }} />
+            </div>
+            <div className="alert info" style={{ marginTop: 16 }}>
+              💡 {result.suggestion}
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

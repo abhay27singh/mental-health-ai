@@ -7,8 +7,11 @@ import {
   Tooltip,
   ResponsiveContainer,
   CartesianGrid,
+  Area,
+  AreaChart,
 } from "recharts";
 import { api } from "../api";
+import { Spinner } from "./ui.jsx";
 
 const QUESTIONS = [
   ["Stress Level", "How stressed have you felt recently?"],
@@ -29,6 +32,15 @@ function formatDate(d) {
   });
 }
 
+const chartTooltip = {
+  contentStyle: {
+    background: "#141a29",
+    border: "1px solid #232b3d",
+    borderRadius: 10,
+    color: "#eef2f9",
+  },
+};
+
 export default function Dashboard() {
   const [answers, setAnswers] = useState(Array(QUESTIONS.length).fill(0));
   const [prediction, setPrediction] = useState(null);
@@ -36,6 +48,7 @@ export default function Dashboard() {
 
   const [moodText, setMoodText] = useState("");
   const [moodMsg, setMoodMsg] = useState(null);
+  const [savingMood, setSavingMood] = useState(false);
   const [history, setHistory] = useState([]);
 
   async function loadHistory() {
@@ -51,16 +64,14 @@ export default function Dashboard() {
     loadHistory();
   }, []);
 
-  function setAnswer(i, val) {
+  const setAnswer = (i, val) =>
     setAnswers((prev) => prev.map((a, idx) => (idx === i ? val : a)));
-  }
 
   async function runPredict() {
     setPredicting(true);
     setPrediction(null);
     try {
-      const res = await api.predict(answers);
-      setPrediction(res);
+      setPrediction(await api.predict(answers));
     } catch (err) {
       setPrediction({ error: err.message });
     } finally {
@@ -71,104 +82,182 @@ export default function Dashboard() {
   async function analyzeMood() {
     if (!moodText.trim()) return;
     setMoodMsg(null);
+    setSavingMood(true);
     try {
       const res = await api.addMood(moodText);
-      setMoodMsg({ type: "success", text: `Mood Score: ${res.score}` });
+      const sentiment =
+        res.score > 0.2 ? "positive" : res.score < -0.2 ? "negative" : "neutral";
+      setMoodMsg({
+        type: res.score < -0.2 ? "warning" : "success",
+        text: `Mood score: ${res.score} — sentiment reads as ${sentiment}.`,
+      });
       setMoodText("");
       loadHistory();
     } catch (err) {
       setMoodMsg({ type: "error", text: err.message });
+    } finally {
+      setSavingMood(false);
     }
   }
 
+  // Stats
+  const avgMood =
+    history.length > 0
+      ? (history.reduce((a, b) => a + b.score, 0) / history.length).toFixed(2)
+      : "—";
+  const lastMood = history.length > 0 ? history[history.length - 1].score.toFixed(2) : "—";
+
   return (
     <>
+      {/* Stat row */}
+      <div className="stats">
+        <div className="stat">
+          <div className="label">Journal Entries</div>
+          <div className="value grad">{history.length}</div>
+        </div>
+        <div className="stat">
+          <div className="label">Average Mood</div>
+          <div className="value">{avgMood}</div>
+        </div>
+        <div className="stat">
+          <div className="label">Latest Mood</div>
+          <div className="value">{lastMood}</div>
+        </div>
+      </div>
+
       {/* Assessment */}
       <div className="card">
-        <h2>🧠 Mental Health Assessment</h2>
+        <div className="card-head">
+          <div className="ico">🧠</div>
+          <div>
+            <h2>Mental Health Assessment</h2>
+            <div className="sub">Rate each area from 0 (low) to 10 (high)</div>
+          </div>
+        </div>
+
         {QUESTIONS.map(([title, desc], i) => (
-          <div key={i} style={{ marginBottom: 16 }}>
-            <strong>
-              Q{i + 1}. {title}
-            </strong>
-            <div className="muted">{desc}</div>
-            <div className="row">
-              <input
-                type="range"
-                min="0"
-                max="10"
-                value={answers[i]}
-                onChange={(e) => setAnswer(i, Number(e.target.value))}
-              />
-              <span style={{ width: 24, textAlign: "right" }}>{answers[i]}</span>
+          <div key={i} className="field">
+            <div className="row" style={{ justifyContent: "space-between" }}>
+              <strong>
+                {title}
+              </strong>
+              <span className="badge moderate" style={{ minWidth: 34 }}>
+                {answers[i]}
+              </span>
             </div>
+            <div className="muted" style={{ fontSize: 13, marginBottom: 6 }}>
+              {desc}
+            </div>
+            <input
+              type="range"
+              min="0"
+              max="10"
+              value={answers[i]}
+              onChange={(e) => setAnswer(i, Number(e.target.value))}
+            />
           </div>
         ))}
 
-        <button onClick={runPredict} disabled={predicting}>
-          {predicting ? "Predicting..." : "Predict"}
+        <button onClick={runPredict} disabled={predicting} style={{ marginTop: 8 }}>
+          {predicting ? <Spinner /> : "Analyze Risk"}
         </button>
 
-        {prediction && prediction.error && (
-          <div className="alert error">{prediction.error}</div>
-        )}
+        {prediction?.error && <div className="alert error">{prediction.error}</div>}
         {prediction && !prediction.error && (
-          <div style={{ marginTop: 16 }}>
-            <div className="alert success">
-              Risk Probability: {prediction.probability}
+          <div style={{ marginTop: 18 }}>
+            <div className="row" style={{ justifyContent: "space-between" }}>
+              <div>
+                <div className="muted" style={{ fontSize: 13 }}>
+                  Estimated risk probability
+                </div>
+                <div style={{ fontSize: 30, fontWeight: 800 }}>
+                  {Math.round(prediction.probability * 100)}%
+                </div>
+              </div>
+              <span className={`badge dot ${prediction.severity}`}>
+                {prediction.severity} risk
+              </span>
             </div>
-            <div className="alert warning">{prediction.alert}</div>
-            <h3>Recommendations</h3>
-            <ul className="list-clean">
+            <div className="progress">
+              <div style={{ width: `${prediction.probability * 100}%` }} />
+            </div>
+            {prediction.severity === "high" && (
+              <div className="alert warning">{prediction.alert}</div>
+            )}
+
+            <h4 style={{ marginTop: 18, marginBottom: 4 }}>Recommended for you</h4>
+            <ul className="rec-list">
               {prediction.recommendations.map((r, i) => (
-                <li key={i}>✔️ {r}</li>
+                <li key={i}>
+                  <span className="check">✓</span>
+                  {r}
+                </li>
               ))}
             </ul>
           </div>
         )}
       </div>
 
-      {/* Mood Journal */}
-      <div className="card">
-        <h2>📝 Mood Journal</h2>
-        <textarea
-          placeholder="Write how you feel"
-          value={moodText}
-          onChange={(e) => setMoodText(e.target.value)}
-        />
-        {moodMsg && <div className={`alert ${moodMsg.type}`}>{moodMsg.text}</div>}
-        <div style={{ marginTop: 12 }}>
-          <button onClick={analyzeMood}>Analyze Mood</button>
+      <div className="grid-2">
+        {/* Mood Journal */}
+        <div className="card">
+          <div className="card-head">
+            <div className="ico">📝</div>
+            <div>
+              <h2>Mood Journal</h2>
+              <div className="sub">Write freely — we'll gauge the sentiment</div>
+            </div>
+          </div>
+          <textarea
+            placeholder="How are you feeling today?"
+            value={moodText}
+            onChange={(e) => setMoodText(e.target.value)}
+          />
+          {moodMsg && <div className={`alert ${moodMsg.type}`}>{moodMsg.text}</div>}
+          <button onClick={analyzeMood} disabled={savingMood} style={{ marginTop: 12 }}>
+            {savingMood ? <Spinner /> : "Save & Analyze"}
+          </button>
         </div>
-      </div>
 
-      {/* Mood Trend */}
-      <div className="card">
-        <h2>📈 Mood Trend</h2>
-        {history.length === 0 ? (
-          <div className="muted">No mood entries yet.</div>
-        ) : (
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={history}>
-              <CartesianGrid stroke="#2a2f3a" strokeDasharray="3 3" />
-              <XAxis dataKey="label" stroke="#8b949e" fontSize={11} />
-              <YAxis domain={[-1, 1]} stroke="#8b949e" fontSize={11} />
-              <Tooltip
-                contentStyle={{
-                  background: "#161b22",
-                  border: "1px solid #2a2f3a",
-                }}
-              />
-              <Line
-                type="monotone"
-                dataKey="score"
-                stroke="#3b82f6"
-                strokeWidth={3}
-                dot={{ r: 4 }}
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        )}
+        {/* Mood Trend */}
+        <div className="card">
+          <div className="card-head">
+            <div className="ico">📈</div>
+            <div>
+              <h2>Mood Trend</h2>
+              <div className="sub">Your sentiment over time</div>
+            </div>
+          </div>
+          {history.length === 0 ? (
+            <div className="empty">
+              <span className="emoji">🌱</span>
+              No entries yet — save a journal entry to see your trend.
+            </div>
+          ) : (
+            <ResponsiveContainer width="100%" height={240}>
+              <AreaChart data={history} margin={{ left: -18, right: 6, top: 6 }}>
+                <defs>
+                  <linearGradient id="moodFill" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#6366f1" stopOpacity={0.5} />
+                    <stop offset="100%" stopColor="#6366f1" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid stroke="#232b3d" strokeDasharray="3 3" />
+                <XAxis dataKey="label" stroke="#6b7689" fontSize={10} tickMargin={6} />
+                <YAxis domain={[-1, 1]} stroke="#6b7689" fontSize={10} />
+                <Tooltip {...chartTooltip} />
+                <Area
+                  type="monotone"
+                  dataKey="score"
+                  stroke="#8b5cf6"
+                  strokeWidth={3}
+                  fill="url(#moodFill)"
+                  dot={{ r: 3, fill: "#8b5cf6" }}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          )}
+        </div>
       </div>
     </>
   );

@@ -14,3 +14,6 @@ frontend/node_modules/
 
 # Runtime (start.sh / stop.sh)
 .run/
+
+# Local Claude settings (keep launch.json, ignore local prefs)
+.claude/settings.local.json
