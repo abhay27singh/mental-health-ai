@@ -48,30 +48,6 @@ User Input → ML Prediction → Emotion Detection → Recommendations → Chatb
 
 ---
 
-## 📸 Screenshots
-
-### 🔐 Login Page
-
-(Add screenshot here)
-
-### 📊 Dashboard
-
-(Add screenshot here)
-
-### 😊 Emotion Detection
-
-(Add screenshot here)
-
-### 🤖 Chatbot
-
-(Add screenshot here)
-
-### 👑 Admin Panel
-
-(Add screenshot here)
-
----
-
 ## ⚙️ Installation & Running
 
 ### Quick start

@@ -53,8 +53,8 @@ def chatbot_response(user_message, chat_history=None):
         api_key = OPENAI_API_KEY or _get_api_key()
         if not api_key:
             return (
-                "Chatbot is not configured. Please add OPENAI_API_KEY to "
-                ".streamlit/secrets.toml or your environment."
+                "⚠️ The AI companion isn't set up yet. Add a valid OPENAI_API_KEY "
+                "(as an environment variable or in .streamlit/secrets.toml) to enable it."
             )
 
         messages = [{"role": "system", "content": SYSTEM_PROMPT}]
@@ -84,13 +84,27 @@ def chatbot_response(user_message, chat_history=None):
 
         data = response.json()
 
-        # ❌ Error handling
-        if "choices" not in data:
-            err = data.get("error", data)
-            return f"API Error: {err}"
-
         # ✅ Return reply
-        return data["choices"][0]["message"]["content"]
+        if "choices" in data:
+            return data["choices"][0]["message"]["content"]
 
-    except Exception as e:
-        return f"Error: {str(e)}"
+        # ❌ Friendly error handling — never leak the API key or raw payload.
+        error = data.get("error", {}) if isinstance(data, dict) else {}
+        code = error.get("code") or error.get("type")
+
+        if response.status_code == 401 or code == "invalid_api_key":
+            return (
+                "⚠️ The AI companion isn't available right now — the OpenAI API key "
+                "is missing or invalid. Please set a valid OPENAI_API_KEY."
+            )
+        if response.status_code == 429 or code in ("insufficient_quota", "rate_limit_exceeded"):
+            return (
+                "⚠️ The AI companion is busy right now (rate limit or quota reached). "
+                "Please try again in a little while."
+            )
+        return "⚠️ The AI companion is temporarily unavailable. Please try again in a moment."
+
+    except requests.exceptions.RequestException:
+        return "⚠️ Couldn't reach the AI service. Please check your connection and try again."
+    except Exception:
+        return "⚠️ Something went wrong with the AI companion. Please try again."
