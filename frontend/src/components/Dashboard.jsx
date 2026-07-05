@@ -40,8 +40,9 @@ const chartTooltip = {
     background: "#141a29",
     border: "1px solid #232b3d",
     borderRadius: 10,
-    color: "#eef2f9",
   },
+  labelStyle: { color: "#eef2f9", fontWeight: 600, marginBottom: 2 },
+  itemStyle: { color: "#c7d0e0" },
 };
 
 export default function Dashboard() {
@@ -347,7 +348,11 @@ export default function Dashboard() {
               <CartesianGrid stroke="#232b3d" strokeDasharray="3 3" />
               <XAxis dataKey="model" stroke="#6b7689" fontSize={11} />
               <YAxis domain={[0, 100]} stroke="#6b7689" fontSize={10} unit="%" />
-              <Tooltip {...chartTooltip} cursor={{ fill: "rgba(255,255,255,0.04)" }} />
+              <Tooltip
+                {...chartTooltip}
+                cursor={{ fill: "rgba(255,255,255,0.04)" }}
+                formatter={(value) => [`${value}%`, "Accuracy"]}
+              />
               <Bar dataKey="accuracy" radius={[6, 6, 0, 0]}>
                 {metrics.map((m) => (
                   <Cell

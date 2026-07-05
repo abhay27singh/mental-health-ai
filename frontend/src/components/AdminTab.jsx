@@ -18,8 +18,9 @@ const chartTooltip = {
     background: "#141a29",
     border: "1px solid #232b3d",
     borderRadius: 10,
-    color: "#eef2f9",
   },
+  labelStyle: { color: "#eef2f9", fontWeight: 600, marginBottom: 2 },
+  itemStyle: { color: "#c7d0e0" },
 };
 const BAR_COLORS = ["#6366f1", "#2dd4bf", "#fbbf24", "#f87171", "#60a5fa", "#a78bfa", "#34d399"];
 
