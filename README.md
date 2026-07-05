@@ -34,8 +34,8 @@ An AI-powered mental health analysis system that helps users track mood, detect 
 - **Database:** SQLite
 - **Machine Learning:** Random Forest
 - **NLP:** TextBlob
-- **Emotion Detection:** DeepFace
-- **Chatbot API:** OpenAI (gpt-4o-mini)
+- **Emotion Detection:** DeepFace + RetinaFace
+- **Chatbot API:** Groq (Llama 3.3, free tier — OpenAI-compatible)
 
 The app is split into a Python REST API (`api.py`) that reuses the original
 ML/NLP/emotion logic, and a React single-page app (`frontend/`) that consumes it.
@@ -74,8 +74,9 @@ python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
 
-# Optional: enable the AI chatbot (emergency replies work without it)
-export OPENAI_API_KEY="sk-..."
+# Optional: enable the AI chatbot with a FREE Groq key (https://console.groq.com)
+# Emergency replies work without it.
+export GROQ_API_KEY="gsk_..."
 
 uvicorn api:app --reload --port 8000
 ```
