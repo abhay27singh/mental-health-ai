@@ -347,12 +347,12 @@ export default function Dashboard() {
               <CartesianGrid stroke="#232b3d" strokeDasharray="3 3" />
               <XAxis dataKey="model" stroke="#6b7689" fontSize={11} />
               <YAxis domain={[0, 100]} stroke="#6b7689" fontSize={10} unit="%" />
-              <Tooltip {...chartTooltip} cursor={{ fill: "rgba(99,102,241,0.08)" }} />
+              <Tooltip {...chartTooltip} cursor={{ fill: "rgba(255,255,255,0.04)" }} />
               <Bar dataKey="accuracy" radius={[6, 6, 0, 0]}>
                 {metrics.map((m) => (
                   <Cell
                     key={m.model}
-                    fill={m.model === "Random Forest" ? "#6366f1" : "#2f3850"}
+                    fill={m.model === "Random Forest" ? "#6366f1" : "#4a5480"}
                   />
                 ))}
               </Bar>
