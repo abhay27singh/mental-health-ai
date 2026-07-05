@@ -6,6 +6,7 @@ import Dashboard from "./components/Dashboard.jsx";
 import EmotionTab from "./components/EmotionTab.jsx";
 import ChatbotTab from "./components/ChatbotTab.jsx";
 import AdminTab from "./components/AdminTab.jsx";
+import Profile from "./components/Profile.jsx";
 
 const NAV = [
   {
@@ -35,6 +36,13 @@ const NAV = [
     icon: Icons.admin,
     title: "Admin Console",
     subtitle: "Manage users and review wellness analytics.",
+  },
+  {
+    id: "profile",
+    label: "Profile",
+    icon: Icons.profile,
+    title: "Your Profile",
+    subtitle: "Edit your basic details and manage your password.",
   },
 ];
 
@@ -98,7 +106,11 @@ export default function App() {
         </nav>
 
         <div className="sidebar-footer">
-          <div className="user-chip">
+          <button
+            className="user-chip"
+            onClick={() => setTab("profile")}
+            title="Edit your profile"
+          >
             <div className="avatar">
               {auth.username.charAt(0).toUpperCase() || "?"}
             </div>
@@ -106,7 +118,7 @@ export default function App() {
               <div className="user-name">{auth.username}</div>
               <div className="user-role">{auth.isAdmin ? "Administrator" : "Member"}</div>
             </div>
-          </div>
+          </button>
           <button className="ghost block" onClick={handleLogout}>
             {Icons.logout}
             <span>Sign out</span>
@@ -124,6 +136,7 @@ export default function App() {
         {tab === "emotion" && <EmotionTab />}
         {tab === "chatbot" && <ChatbotTab />}
         {tab === "admin" && <AdminTab isAdmin={auth.isAdmin} />}
+        {tab === "profile" && <Profile username={auth.username} />}
       </main>
     </div>
   );

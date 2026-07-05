@@ -16,8 +16,69 @@ def create_user_table():
             password TEXT
         )
     """)
+    # Add profile columns to existing databases if they're missing.
+    existing = {row[1] for row in c.execute("PRAGMA table_info(users)")}
+    for col, decl in [
+        ("full_name", "TEXT"),
+        ("email", "TEXT"),
+        ("age", "INTEGER"),
+        ("gender", "TEXT"),
+    ]:
+        if col not in existing:
+            c.execute(f"ALTER TABLE users ADD COLUMN {col} {decl}")
     conn.commit()
     conn.close()
+
+
+# ================= PROFILE =================
+
+def get_profile(username):
+    conn = get_connection()
+    c = conn.cursor()
+    row = c.execute(
+        "SELECT username, full_name, email, age, gender FROM users WHERE username=?",
+        (username,),
+    ).fetchone()
+    conn.close()
+    if not row:
+        return None
+    return {
+        "username": row[0],
+        "full_name": row[1] or "",
+        "email": row[2] or "",
+        "age": row[3],
+        "gender": row[4] or "",
+    }
+
+
+def update_profile(username, full_name, email, age, gender):
+    conn = get_connection()
+    c = conn.cursor()
+    c.execute(
+        "UPDATE users SET full_name=?, email=?, age=?, gender=? WHERE username=?",
+        (full_name, email, age, gender, username),
+    )
+    conn.commit()
+    conn.close()
+
+
+def change_password(username, current, new):
+    """Verify the current password, then set the new one. Returns bool."""
+    conn = get_connection()
+    c = conn.cursor()
+    row = c.execute(
+        "SELECT password FROM users WHERE username=?", (username,)
+    ).fetchone()
+    if not row or row[0] != hash_password(current):
+        conn.close()
+        return False
+    c.execute(
+        "UPDATE users SET password=? WHERE username=?",
+        (hash_password(new), username),
+    )
+    conn.commit()
+    conn.close()
+    return True
 
 # ================= EMOTIONS =================
 

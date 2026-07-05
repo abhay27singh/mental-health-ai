@@ -2,6 +2,9 @@ import { useEffect, useState } from "react";
 import {
   LineChart,
   Line,
+  BarChart,
+  Bar,
+  Cell,
   XAxis,
   YAxis,
   Tooltip,
@@ -50,6 +53,7 @@ export default function Dashboard() {
   const [moodMsg, setMoodMsg] = useState(null);
   const [savingMood, setSavingMood] = useState(false);
   const [history, setHistory] = useState([]);
+  const [metrics, setMetrics] = useState([]);
 
   async function loadHistory() {
     try {
@@ -62,6 +66,14 @@ export default function Dashboard() {
 
   useEffect(() => {
     loadHistory();
+    api
+      .modelMetrics()
+      .then((m) =>
+        setMetrics(
+          Object.entries(m).map(([model, accuracy]) => ({ model, accuracy }))
+        )
+      )
+      .catch(() => {});
   }, []);
 
   const setAnswer = (i, val) =>
@@ -185,6 +197,63 @@ export default function Dashboard() {
               <div className="alert warning">{prediction.alert}</div>
             )}
 
+            {/* Multimodal fusion indicator */}
+            {prediction.fusion?.used ? (
+              <div className="alert info">
+                🧬 <strong>Multimodal:</strong> fused your latest facial scan (
+                {prediction.fusion.emotion}, {prediction.fusion.confidence}%) with
+                the questionnaire.
+              </div>
+            ) : (
+              <div className="muted" style={{ fontSize: 13, marginTop: 10 }}>
+                🧬 Tip: run an <strong>Emotion Scan</strong> first — it gets fused
+                into this prediction (multimodal).
+              </div>
+            )}
+
+            {/* Explainable AI: per-factor attribution */}
+            {prediction.explanation?.length > 0 && (
+              <>
+                <h4 style={{ marginTop: 20, marginBottom: 2 }}>
+                  Why this result?{" "}
+                  <span className="muted" style={{ fontWeight: 400, fontSize: 13 }}>
+                    (Explainable AI)
+                  </span>
+                </h4>
+                <div className="muted" style={{ fontSize: 13, marginBottom: 10 }}>
+                  How each factor pushed your risk score.
+                </div>
+                {prediction.explanation.map((f) => {
+                  const up = f.direction === "increases";
+                  return (
+                    <div key={f.feature} style={{ marginBottom: 10 }}>
+                      <div
+                        className="row"
+                        style={{ justifyContent: "space-between", fontSize: 13.5 }}
+                      >
+                        <span>
+                          {up ? "🔴" : "🟢"} {f.feature}{" "}
+                          <span className="muted">({f.value})</span>
+                        </span>
+                        <span style={{ color: up ? "var(--red)" : "var(--green)" }}>
+                          {up ? "↑" : "↓"} {f.weight}%
+                        </span>
+                      </div>
+                      <div className="xai-track">
+                        <div
+                          className="xai-fill"
+                          style={{
+                            width: `${f.weight}%`,
+                            background: up ? "var(--red)" : "var(--green)",
+                          }}
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+              </>
+            )}
+
             <h4 style={{ marginTop: 18, marginBottom: 4 }}>Recommended for you</h4>
             <ul className="rec-list">
               {prediction.recommendations.map((r, i) => (
@@ -259,6 +328,38 @@ export default function Dashboard() {
           )}
         </div>
       </div>
+
+      {/* Model performance comparison */}
+      {metrics.length > 0 && (
+        <div className="card">
+          <div className="card-head">
+            <div className="ico">🧪</div>
+            <div>
+              <h2>Model Performance</h2>
+              <div className="sub">
+                Test accuracy of the compared classifiers · Random Forest powers
+                your prediction
+              </div>
+            </div>
+          </div>
+          <ResponsiveContainer width="100%" height={240}>
+            <BarChart data={metrics} margin={{ left: -14, right: 6, top: 6 }}>
+              <CartesianGrid stroke="#232b3d" strokeDasharray="3 3" />
+              <XAxis dataKey="model" stroke="#6b7689" fontSize={11} />
+              <YAxis domain={[0, 100]} stroke="#6b7689" fontSize={10} unit="%" />
+              <Tooltip {...chartTooltip} cursor={{ fill: "rgba(99,102,241,0.08)" }} />
+              <Bar dataKey="accuracy" radius={[6, 6, 0, 0]}>
+                {metrics.map((m) => (
+                  <Cell
+                    key={m.model}
+                    fill={m.model === "Random Forest" ? "#6366f1" : "#2f3850"}
+                  />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      )}
     </>
   );
 }

@@ -3,9 +3,9 @@ fastapi
 uvicorn[standard]
 python-multipart
 
-# Core logic (reused from the original Streamlit app)
+# Core logic (ML, NLP, emotion detection)
 requests
-numpy
+numpy<2.0          # TensorFlow/DeepFace require numpy 1.x
 scikit-learn
 joblib
 textblob

@@ -48,8 +48,18 @@ export const api = {
 
   moodHistory: () => request("/api/mood/history"),
 
+  modelMetrics: () => request("/api/models/metrics"),
+
   chat: (message, history) =>
     request("/api/chat", { method: "POST", body: { message, history } }),
+
+  getProfile: () => request("/api/profile"),
+  updateProfile: (data) => request("/api/profile", { method: "PUT", body: data }),
+  changePassword: (current_password, new_password) =>
+    request("/api/profile/password", {
+      method: "POST",
+      body: { current_password, new_password },
+    }),
 
   detectEmotion: (blob) => {
     const form = new FormData();

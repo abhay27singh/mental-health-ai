@@ -127,6 +127,31 @@ export default function EmotionTab() {
             <div className="progress" style={{ marginTop: 14 }}>
               <div style={{ width: `${Math.min(result.confidence, 100)}%` }} />
             </div>
+
+            {result.scores && (
+              <div style={{ marginTop: 18 }}>
+                <div className="muted" style={{ fontSize: 13, marginBottom: 8 }}>
+                  Full breakdown
+                </div>
+                {Object.entries(result.scores).map(([emo, val]) => (
+                  <div key={emo} style={{ marginBottom: 9 }}>
+                    <div
+                      className="row"
+                      style={{ justifyContent: "space-between", fontSize: 13 }}
+                    >
+                      <span style={{ textTransform: "capitalize" }}>
+                        {EMOJI[emo] || ""} {emo}
+                      </span>
+                      <span className="muted">{val}%</span>
+                    </div>
+                    <div className="progress" style={{ margin: "4px 0 0", height: 6 }}>
+                      <div style={{ width: `${Math.min(val, 100)}%` }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
             <div className="alert info" style={{ marginTop: 16 }}>
               💡 {result.suggestion}
             </div>

@@ -8,9 +8,13 @@ An AI-powered mental health analysis system that helps users track mood, detect 
 
 ### 👤 User Features
 
-- Mental Health Questionnaire
+- Mental Health Questionnaire with ML risk prediction
+- **Explainable AI (XAI):** per-factor "why this result?" attribution for every prediction
+- **Multimodal fusion:** the latest facial-emotion scan is fused into the risk model
+- **Model comparison:** Logistic Regression vs KNN vs Decision Tree vs Random Forest
 - Mood Journal & Trend Graph
-- Emotion Detection using Camera
+- Emotion Detection using Camera (DeepFace + RetinaFace)
+- Profile management (edit details, change password)
 - AI Chatbot Support
 - Emergency Detection & Helpline Suggestion
 

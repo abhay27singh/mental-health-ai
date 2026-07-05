@@ -17,3 +17,7 @@ frontend/node_modules/
 
 # Local Claude settings (keep launch.json, ignore local prefs)
 .claude/settings.local.json
+
+# Generated ML artifacts (regenerated deterministically on startup)
+models/*.pkl
+models/metrics.json
